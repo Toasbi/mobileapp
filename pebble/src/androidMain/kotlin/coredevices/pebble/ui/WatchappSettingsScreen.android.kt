@@ -24,7 +24,6 @@ import androidx.webkit.WebViewFeature
 import co.touchlab.kermit.Logger
 import com.multiplatform.webview.web.defaultWebViewFactory
 import coredevices.pebble.config.CONFIG_NATIVE_NAMESPACE
-import coredevices.pebble.config.CONFIG_PAGE_SHIM_JS
 import coredevices.pebble.config.ConfigPageBridge
 import io.rebble.libpebblecommon.connection.AppContext
 import io.rebble.libpebblecommon.io.rebble.libpebblecommon.js.WebViewJSLocalStorageInterface
@@ -43,6 +42,7 @@ internal actual fun webViewFactory(
     bridge: ConfigPageBridge,
     mayLoad: (String) -> Boolean,
     network: ConfigPageNetwork,
+    shimJs: String,
 ): NativeWebView = defaultWebViewFactory(params).apply {
     addJavascriptInterface(ConfigNetwork(mayLoad), CONFIG_NETWORK_NAMESPACE)
     if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
@@ -55,7 +55,7 @@ internal actual fun webViewFactory(
     // Runs before the page's own <script>, which is the whole point: pages call Pebble.* from
     // the top level. Needs WebView 83+; without it the page has to wait for onPageStarted.
     if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
-        WebViewCompat.addDocumentStartJavaScript(this, CONFIG_PAGE_SHIM_JS, setOf("*"))
+        WebViewCompat.addDocumentStartJavaScript(this, shimJs, setOf("*"))
     } else {
         Logger.withTag("webViewFactory").w("No DOCUMENT_START_SCRIPT; config API lands late")
     }

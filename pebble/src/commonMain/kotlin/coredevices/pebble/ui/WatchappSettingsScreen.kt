@@ -74,6 +74,7 @@ import coredevices.pebble.config.ConfigPageSessions
 import coredevices.pebble.config.ConfigScriptIds
 import coredevices.pebble.config.PluginConfigFileAccess
 import coredevices.pebble.config.VisibleConfigPage
+import coredevices.pebble.config.configPageShimJs
 import coredevices.pebble.config.performWebSignIn
 import coredevices.pebble.config.webSignInSupported
 import coredevices.util.isDebugBuild
@@ -97,6 +98,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import theme.currentColorScheme
 import kotlin.uuid.Uuid
 
 private const val URL_DATA_PREFIX = "data:text/html;charset=utf-8,"
@@ -117,6 +119,7 @@ internal expect fun webViewFactory(
     /** Blocking; whatever the page loads or connects to is checked against the app's permissions. */
     mayLoad: (String) -> Boolean,
     network: ConfigPageNetwork,
+    shimJs: String,
 ): NativeWebView
 
 /** Limits what a config page may connect to, on top of [webViewFactory]'s per-request checks. */
@@ -400,12 +403,13 @@ fun WatchappSettingsScreen(
                         modifier = Modifier.padding(paddingValues).padding(16.dp),
                     )
                 } else {
+                    val colorScheme = currentColorScheme()
                     WebView(
                         state = state,
                         modifier = Modifier.fillMaxSize().padding(paddingValues),
                         navigator = navigator,
                         platformWebViewParams = platformParams,
-                        factory = { webViewFactory(it, webViewUuid, bridge, mayLoad, pageNetwork) }
+                        factory = { webViewFactory(it, webViewUuid, bridge, mayLoad, pageNetwork, configPageShimJs(colorScheme)) }
                     )
                 }
             }

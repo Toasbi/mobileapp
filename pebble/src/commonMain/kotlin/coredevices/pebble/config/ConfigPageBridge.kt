@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import theme.CoreAppColorScheme
 
 /**
  * The native half of a config page's `Pebble` API.
@@ -291,7 +292,7 @@ const val CONFIG_NATIVE_NAMESPACE = "_PebbleConfigNative"
  * `ready` event per script rather than assuming one is up: a plugin is only started when its
  * page opens.
  */
-val CONFIG_PAGE_SHIM_JS = """
+fun configPageShimJs(colorScheme: CoreAppColorScheme) = """
 (function (global) {
   var nextId = 1;
   var pending = {};
@@ -418,6 +419,9 @@ val CONFIG_PAGE_SHIM_JS = """
   /** Scripts that have already reported ready, for a page that listens late. */
   global.Pebble.readyTargets = function () { return readyTargets.slice(); };
 
+  /** The app's theme when the page opened: 'light', 'dark' or 'black'. */
+  global.Pebble.appTheme = '${colorScheme.pageTheme}';
+
   global.Pebble.addEventListener = function (type, callback) {
     if (!listeners[type] || typeof callback !== 'function') return;
     listeners[type].push(callback);
@@ -459,3 +463,10 @@ val CONFIG_PAGE_SHIM_JS = """
 
 })(window);
 """.trimIndent()
+
+private val CoreAppColorScheme.pageTheme
+    get() = when (this) {
+        CoreAppColorScheme.Light -> "light"
+        CoreAppColorScheme.Grey -> "dark"
+        CoreAppColorScheme.Black -> "black"
+    }

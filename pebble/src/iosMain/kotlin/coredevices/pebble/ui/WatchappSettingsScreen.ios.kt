@@ -7,7 +7,6 @@ import com.multiplatform.webview.web.PlatformWebViewParams
 import com.multiplatform.webview.web.WebViewFactoryParam
 import com.multiplatform.webview.web.defaultWebViewFactory
 import coredevices.pebble.config.CONFIG_NATIVE_NAMESPACE
-import coredevices.pebble.config.CONFIG_PAGE_SHIM_JS
 import coredevices.pebble.config.ConfigPageBridge
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.serialization.json.buildJsonArray
@@ -39,6 +38,7 @@ internal actual fun webViewFactory(
     bridge: ConfigPageBridge,
     mayLoad: (String) -> Boolean,
     network: ConfigPageNetwork,
+    shimJs: String,
 ): NativeWebView =
     defaultWebViewFactory(params).apply {
         network.rules?.let { configuration.userContentController.addContentRuleList(it) }
@@ -54,7 +54,7 @@ internal actual fun webViewFactory(
         // top level rather than waiting for something to be injected after load.
         configuration.userContentController.addUserScript(
             WKUserScript(
-                source = CONFIG_PAGE_SHIM_JS,
+                source = shimJs,
                 injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
                 forMainFrameOnly = true,
             )
